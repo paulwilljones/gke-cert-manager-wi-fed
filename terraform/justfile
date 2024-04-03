@@ -1,0 +1,10 @@
+default: apply
+
+apply: fmt validate
+    terraform apply -auto-approve
+
+fmt:
+    terraform fmt
+
+validate:
+    terraform validate

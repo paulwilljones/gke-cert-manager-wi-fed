@@ -1,0 +1,29 @@
+apiVersion: pkg.crossplane.io/v1alpha1
+kind: ControllerConfig
+metadata:
+  name: gke-controller-config
+  namespace: crossplane-system
+  annotations:    
+    iam.gke.io/gcp-service-account: crossplane-gsa@jetstack-paul.iam.gserviceaccount.com	
+spec:
+  serviceAccountName: crossplane
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-gcp-cloudplatform
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/upbound/provider-gcp-cloudplatform:v1.0.2
+  controllerConfigRef:
+    name: gke-controller-config
+---
+apiVersion: gcp.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+  namespace: crossplane-system
+spec:
+  credentials:
+    source: InjectedIdentity
+  projectID: jetstack-paul
