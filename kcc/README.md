@@ -1,4 +1,4 @@
-# kcc
+# Config Connector
 
 ## Setup
 
@@ -38,7 +38,7 @@ spec:
 EOF
 ```
 
-## `IAMCustomRole` and `IAMPolicyMember`
+## [`IAMCustomRole`](https://cloud.google.com/config-connector/docs/reference/resource-docs/iam/iamcustomrole) and [`IAMPolicyMember`](https://cloud.google.com/config-connector/docs/reference/resource-docs/iam/iampolicymember)
 
 ```sh
 kubectl apply -f - <<EOF

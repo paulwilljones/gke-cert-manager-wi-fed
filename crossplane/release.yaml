@@ -1,0 +1,22 @@
+apiVersion: helm.crossplane.io/v1beta1
+kind: Release
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  forProvider:
+    chart:
+      name: cert-manager
+      repository: https://charts.jetstack.io
+    namespace: cert-manager
+    values:
+      installCRDs:
+        type: true
+      global:
+        leaderElection:
+          namespace: cert-manager
+      extraArgs:
+        - --issuer-ambient-credentials
+    skipCreateNamespace: false
+  providerConfigRef:
+    name: helm-provider

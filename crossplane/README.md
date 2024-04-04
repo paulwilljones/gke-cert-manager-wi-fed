@@ -103,3 +103,82 @@ spec:
     role: projects/jetstack-paul/roles/certmanagerxp
 EOF
 ```
+
+## cert-manager
+
+### helm-provider
+
+```yaml
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-helm
+spec:
+  package: xpkg.upbound.io/crossplane-contrib/provider-helm:v0.17.0
+  runtimeConfigRef:
+    apiVersion: pkg.crossplane.io/v1beta1
+    kind: DeploymentRuntimeConfig
+    name: provider-helm
+---
+apiVersion: helm.crossplane.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: helm-provider
+spec:
+  credentials:
+    source: InjectedIdentity
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-helm
+spec:
+  serviceAccountTemplate:
+    metadata:
+      name: provider-helm
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: provider-helm-cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: provider-helm
+    namespace: crossplane-system
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: provider-helm
+```
+
+## Helm Release
+
+```yaml
+apiVersion: helm.crossplane.io/v1beta1
+kind: Release
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  forProvider:
+    chart:
+      name: cert-manager
+      repository: https://charts.jetstack.io
+    namespace: cert-manager
+    values:
+      installCRDs:
+        type: true
+      global:
+        leaderElection:
+          namespace: cert-manager
+      extraArgs:
+        - --issuer-ambient-credentials
+    skipCreateNamespace: false
+  providerConfigRef:
+    name: helm-provider
+```

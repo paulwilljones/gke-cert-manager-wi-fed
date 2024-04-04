@@ -17,10 +17,31 @@ resource "google_project_iam_member" "project" {
 }
 ```
 
-## Apply
+## cert-manager
 
-```sh
-just apply
+```hcl
+resource "helm_release" "cert_manager" {
+  depends_on       = [google_project_iam_member.cert_manager]
+  name             = "cert-manager"
+  namespace        = "cert-manager"
+  create_namespace = true
+
+  repository = "https://charts.jetstack.io"
+  chart      = "cert-manager"
+
+  set {
+    name  = "installCRDs"
+    value = "true"
+  }
+  set {
+    name  = "global.leaderElection.namespace"
+    value = "cert-manager"
+  }
+  set_list {
+    name  = "extraArgs"
+    value = ["--issuer-ambient-credentials"]
+  }
+}
 ```
 
 ```sh
