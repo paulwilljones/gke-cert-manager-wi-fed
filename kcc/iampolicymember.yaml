@@ -1,25 +1,16 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: my-kcc
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: my-ksa
-  namespace: my-kcc
----
 apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMPolicyMember
 metadata:
-  name: gke-wif-kcc
-  namespace: my-kcc
+  name: cert-manager-kcc
+  namespace: cert-manager
+  annotations:
+    cnrm.cloud.google.com/project-id: jetstack-paul
 spec:
-  member: principal://iam.googleapis.com/projects/993897508389/locations/global/workloadIdentityPools/jetstack-paul.svc.id.goog/subject/ns/my-kcc/sa/my-ksa
-  role: roles/storage.objectViewer
+  member: principal://iam.googleapis.com/projects/993897508389/locations/global/workloadIdentityPools/jetstack-paul.svc.id.goog/subject/ns/cert-manger/sa/cert-manager
+  role: projects/jetstack-paul/roles/certmanagerkcc
   resourceRef:
     kind: Project
     external: projects/jetstack-paul
   # condition:
-  #   expression: 'resource.type=="container.googleapis.com/Clusters" && resource.name.startsWith("projects/jetstack-paul/zones/europe-west2-a/clusters/example")'
+  #   expression: 'request.auth.claims.google.providerId==\"https://container.googleapis.com/v1/projects/jetstack-paul/zones/europe-west2-a/clusters/example'
   #   title: gke-wif-kcc

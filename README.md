@@ -10,6 +10,7 @@ gcloud container clusters create example \
     --min-nodes=1 \
     --max-nodes=9 \
     --num-nodes=3 \
+    --autoscaling-profile=optimize-utilization \
     --enable-autoprovisioning \
     --min-cpu 1 \
     --min-memory 1 \
@@ -18,41 +19,61 @@ gcloud container clusters create example \
     --workload-pool=jetstack-paul.svc.id.goog
 ```
 
+All the features required are enabled by default on Autopilot
+
 ```sh
-kubectl create sa my-ksa
+gcloud container clusters create-auto example-auto \
+    --location europe-west2
 ```
 
 ```sh
 gcloud projects add-iam-policy-binding projects/jetstack-paul \
-    --role=roles/storage.objectViewer \
-    --member=principal://iam.googleapis.com/projects/993897508389/locations/global/workloadIdentityPools/jetstack-paul.svc.id.goog/subject/ns/default/sa/my-ksa \
+    --role=roles/dns.admin \
+    --member=principal://iam.googleapis.com/projects/993897508389/locations/global/workloadIdentityPools/jetstack-paul.svc.id.goog/subject/ns/cert-manager/sa/cert-manager \
     --condition=None
 ```
 
 ```sh
+helm upgrade --install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --set installCRDs=true \
+  --set global.leaderElection.namespace=cert-manager \
+  --set extraArgs={--issuer-ambient-credentials}
+```
+
+```sh
 kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Pod
+apiVersion: cert-manager.io/v1
+kind: Issuer
 metadata:
-  name: test-pod
-  namespace: default
+  name: cloud-dns
 spec:
-  serviceAccountName: my-ksa
-  containers:
-  - name: test-pod
-    image: google/cloud-sdk:slim
-    command: ["sleep","infinity"]
-  nodeSelector:
-    iam.gke.io/gke-metadata-server-enabled: "true"
+  acme:
+    email: paul.jones@jetstack.io
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: issuer-account-key
+    solvers:
+    - dns01:
+        cloudDNS:
+          project: jetstack-paul
 EOF
 ```
 
 ```sh
-gcloud storage buckets create gs://gke-wif
-```
-
-```sh
-kubectl exec -it pods/test-pod --namespace=default -- gcloud storage objects list gs://gke-wif
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: example-com
+spec:
+  secretName: example-com-tls
+  issuerRef:
+    name: cloud-dns
+  dnsNames:
+  - example.paul-gcp.jetstacker.net
+EOF
 ```
 
 > TODO Add condition to mitigate identity sameness
@@ -61,7 +82,7 @@ kubectl exec -it pods/test-pod --namespace=default -- gcloud storage objects lis
 gcloud projects add-iam-policy-binding projects/jetstack-paul \
     --role=roles/storage.objectViewer \
     --member=principal://iam.googleapis.com/projects/993897508389/locations/global/workloadIdentityPools/jetstack-paul.svc.id.goog/subject/ns/default/sa/my-ksa \
-    --condition='title=gke-wif-cluster,expression=resource.type=="container.googleapis.com/Clusters" && resource.name.startsWith("projects/jetstack-paul/zones/europe-west2-a/clusters/example")'
+    --condition='title=gke-wif-cluster,expression="request.auth.claims.google.providerId==\"https://container.googleapis.com/v1/projects/jetstack-paul/zones/europe-west2-a/clusters/example\"'
 ```
 
 ## Terraform
@@ -71,3 +92,11 @@ gcloud projects add-iam-policy-binding projects/jetstack-paul \
 ## Config Connector
 
 [README](./kcc/README.md)
+
+## Crossplane
+
+[README](./crossplane/README.md)
+
+## Pulumi
+
+[README](./pulumi/README.md)

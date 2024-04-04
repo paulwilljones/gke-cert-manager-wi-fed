@@ -1,0 +1,17 @@
+apiVersion: cloudplatform.gcp.upbound.io/v1beta1
+kind: ProjectIAMCustomRole
+metadata:
+  name: certmanagerxp
+spec:
+  forProvider:
+    permissions:
+      - dns.resourceRecordSets.create
+      - dns.resourceRecordSets.list
+      - dns.resourceRecordSets.get
+      - dns.resourceRecordSets.update
+      - dns.resourceRecordSets.delete
+      - dns.changes.get
+      - dns.changes.create
+      - dns.changes.list
+      - dns.managedZones.list
+    title: Cert Manager (Crossplane)

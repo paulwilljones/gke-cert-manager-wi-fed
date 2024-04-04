@@ -1,10 +1,16 @@
 default: apply
 
-apply: fmt validate
+apply: init fmt validate
     terraform apply -auto-approve
+
+init:
+    terraform init
 
 fmt:
     terraform fmt
 
 validate:
     terraform validate
+
+destroy:
+ terraform destroy

@@ -1,21 +1,10 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: my-xp
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: my-ksa
-  namespace: my-xp
----
 apiVersion: cloudplatform.gcp.upbound.io/v1beta1
 kind: ProjectIAMMember
 metadata:
-  name: project-iam-member
-  namespace: my-xp
+  name: cert-manager-xp
+  namespace: cert-manager
 spec:
   forProvider:
     project: jetstack-paul
-    member: principal://iam.googleapis.com/projects/993897508389/locations/global/workloadIdentityPools/jetstack-paul.svc.id.goog/subject/ns/my-xp/sa/my-ksa
-    role: roles/storage.objectViewer
+    member: principal://iam.googleapis.com/projects/993897508389/locations/global/workloadIdentityPools/jetstack-paul.svc.id.goog/subject/ns/cert-manager/sa/cert-manager
+    role: projects/jetstack-paul/roles/certmanagerxp
