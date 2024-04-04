@@ -1,0 +1,10 @@
+default: black up
+
+black:
+    black __main__.py
+
+up:
+    pulumi up -s dev -y
+
+destroy:
+    pulumi destroy -s dev -y

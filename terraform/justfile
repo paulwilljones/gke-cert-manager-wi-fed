@@ -14,3 +14,6 @@ validate:
 
 destroy:
  terraform destroy
+
+graph:
+    terraform graph -type=plan | dot -Tpng >../docs/tf.png
